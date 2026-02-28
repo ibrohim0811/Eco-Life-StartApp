@@ -1,0 +1,30 @@
+# --- Django core ---
+Django>=4.2,<5.0
+asgiref>=3.7
+
+# --- Database (PostgreSQL tavsiya) ---
+psycopg2-binary>=2.9
+
+# --- Aiogram 3.x ---
+aiogram>=3.4
+
+# --- Environment variables ---
+python-dotenv>=1.0
+
+# --- HTTP requests (APIlar uchun) ---
+httpx>=0.27
+
+# --- Redis (optional, lekin tavsiya: FSM, cache) ---
+redis>=5.0
+
+# --- Celery (optional: background tasklar uchun) ---
+celery>=5.3
+
+# --- JSON / utils ---
+pydantic>=2.0
+
+# --- Timezone ---
+pytz
+
+# --- Logging (optional) ---
+loguru>=0.7

@@ -1,0 +1,27 @@
+# Muhit o'zgaruvchilari (Maxfiy ma'lumotlar)
+.env
+
+# Ma'lumotlar bazasi
+*.sqlite3
+*.db
+
+# Python kesh fayllari
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual muhit
+venv/
+env/
+.venv/
+
+# Media va Static fayllar (Agar serverda saqlansa)
+media/
+staticfiles/
+
+# IDE sozlamalari
+.vscode/
+.idea/
+
+# Muhim: manage.py va .md fayllarini gitga qo'shish kerak, 
+# shuning uchun ularni bu yerga yozmaymiz.
