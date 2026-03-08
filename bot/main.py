@@ -27,9 +27,11 @@ from middleware.i18n import i18n_middleware
 from aiogram_i18n.context import I18nContext
 from handlers.register import dp as register
 from handlers.account import dp as acc
+from handlers.faq import faq 
+from handlers.forgot_password import dp as forgot_password
 from admin.admin import dp_admin
 from UI.default import sorov, main_menu
-
+from bot.connections import get_user
 
 load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent
@@ -40,27 +42,33 @@ i18n_middleware.setup(dispatcher=dp)
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 
-def check_user_and_get_lang(tg_id):
-    user = Users.objects.filter(tg_id=tg_id).first()
-    if user:
-        return user.language
-    return None
 
 
 @dp.message(Command('start'))
 async def start(msg: types.Message, i18n: I18nContext):
-    
-    user = await sync_to_async(check_user_and_get_lang)(msg.from_user.id)
-    
+    user = await sync_to_async(get_user)(msg.from_user.id)
+
     if user:
-        await i18n.set_locale(user)
-        await msg.answer(f"👋{i18n('hello')} {msg.from_user.first_name} {i18n('start_text')}", reply_markup=main_menu(i18n))
-        return
-    
-    await i18n.set_locale(msg.from_user.language_code)
-    await msg.answer(f"👋{i18n('hello')} {msg.from_user.first_name} {i18n('start_text')}", reply_markup=sorov(i18n))
-    
+        if user.is_banned:
+            await i18n.set_locale(msg.from_user.language_code)
+            await msg.answer(i18n("banned"), reply_markup=types.ReplyKeyboardRemove())
+            return 
         
+        else:
+            await i18n.set_locale(user.language)
+            await msg.answer(
+                f"👋{i18n('hello')} {msg.from_user.first_name} {i18n('start_text')}", 
+                reply_markup=main_menu(i18n)
+            )
+    
+    else:
+        await i18n.set_locale(msg.from_user.language_code)
+        await msg.answer(
+            f"👋{i18n('hello')} {msg.from_user.first_name} {i18n('start_text')}", 
+            reply_markup=sorov(i18n)
+        )
+    
+
 
 
 async def main():
@@ -68,6 +76,8 @@ async def main():
     dp.update.middleware(i18n_middleware)
     dp.include_router(register)
     dp.include_router(acc)
+    dp.include_router(faq)
+    dp.include_router(forgot_password)
     dp.include_router(dp_admin)
     await dp.start_polling(bot)
 

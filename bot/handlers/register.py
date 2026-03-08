@@ -25,16 +25,20 @@ from UI.default import contact_button, main_menu
 from accounts.models import Users
 
 
+
 dp = Router()
 
-
+def get_user_info(tg_id):
+    return Users.objects.filter(tg_id=tg_id).first()
 
 @dp.message(lambda message, i18n: message.text == i18n("register"))
 async def register(msg: types.Message, state: FSMContext, i18n: I18nContext):
+    
     await state.set_state(Register.set_lang)
     lang =  msg.from_user.language_code
     await i18n.set_locale(lang)
     await msg.answer(i18n("select_lang"), reply_markup=settings_lang(i18n))
+    
     
     
 @dp.callback_query(Register.set_lang, F.data.in_(["uzbek", "rus", "en"]))

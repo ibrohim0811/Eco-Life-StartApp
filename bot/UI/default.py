@@ -46,15 +46,30 @@ def main_menu(i18n: I18nContext) ->ReplyKeyboardMarkup:
                 KeyboardButton(text=i18n('acc'))
             ],
             [
-                KeyboardButton(text=i18n('settings'))
+                KeyboardButton(text=i18n('payment'))
             ],
             [
                 KeyboardButton(text=i18n('forgot_password'))
             ],
             [
-                KeyboardButton(text=i18n('question')),
                 KeyboardButton(text="FAQ")
             ],
         ], 
         resize_keyboard=True
+    )
+    
+    
+def payment_method_choice(i18n: I18nContext) -> ReplyKeyboardMarkup:
+    
+    _ = i18n
+    
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [
+                KeyboardButton(text=_("pay")),
+                KeyboardButton(text=_("withdrawal"))
+            ]      
+        ],
+        resize_keyboard=True,
+        one_time_keyboard=True
     )

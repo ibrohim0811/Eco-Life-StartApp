@@ -44,8 +44,7 @@ def get_user_info(tg_id):
 async def about_account(msg: types.Message, i18n: I18nContext):
     user = await sync_to_async(get_user_info)(msg.from_user.id)
     formatted_balance = "{:,}".format(user.calculated_balance).replace(',', ' ')
-    if user:
-        
+    if user: 
         uuid = str(user.uuid).split('-')[-1]
         text = (
             f"🪪 {i18n('uuid')}: {uuid} \n"
@@ -57,7 +56,9 @@ async def about_account(msg: types.Message, i18n: I18nContext):
             f"📝 {i18n('about')}: {user.about or '-'}\n\n"
             f"💰 {i18n('balance')}: {formatted_balance}"
         )
-    await msg.answer(text, reply_markup=update(i18n))
+        
+        await msg.answer(text, reply_markup=update(i18n))
+       
     
     
 @dp.callback_query(lambda c: c.data == "refresh")

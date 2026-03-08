@@ -25,8 +25,11 @@ class Users(AbstractUser):
     tg_id = models.BigIntegerField(blank=True, null=True)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
+    is_banned = models.BooleanField(default=False)
     image = models.ImageField(upload_to='users/', default='users/image.png')
     
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):
         return self.first_name
@@ -69,7 +72,7 @@ class UserActivities(BaseCreatedModel):
     )
 
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
-    amount = models.IntegerField(default=0)
+    amount = models.IntegerField(default=2500)
     region = models.CharField(max_length=150)
     video_file_id = models.CharField(max_length=255, null=True, blank=True)
     longitude = models.FloatField()

@@ -108,8 +108,6 @@ def get_user_image(tg_id):
     return row[0] 
 
 
-    
-
 
 class AdminStates(StatesGroup):
     waiting_broadcast_type = State()
@@ -295,9 +293,9 @@ logging.basicConfig(
     format="%(levelname)s:%(name)s:%(message)s"
 )
 
-# --- 2. ADMIN ROLLERI VA HOLATLARI ---
+
 dp_admin = Router()
-ADMIN_IDS = [int(os.getenv("ADMIN_ID", 0))] # .env dan olingan ID
+ADMIN_IDS = [int(os.getenv("SUPER_ADMIN", 0))] # .env dan olingan ID
 
 def is_admin(user_id: int) -> bool:
     return user_id in ADMIN_IDS

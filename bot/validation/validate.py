@@ -1,7 +1,5 @@
 import re
 
-import re
-
 def validate_phone_number(phone_number: str) -> str | None:
     # Faqat raqamlarni qoldiramiz
     clean_phone = re.sub(r'\D', '', str(phone_number))
