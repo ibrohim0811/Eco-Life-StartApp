@@ -23,6 +23,7 @@ def sorov(activity_id) -> InlineKeyboardMarkup:
         inline_keyboard=[
             [
                 InlineKeyboardButton(text="Ha ✅", callback_data=f"yes_{activity_id}"),
+                InlineKeyboardButton(text="Allaqachon qabul qilingan ⚠️", callback_data=f"already_{activity_id}"),
                 InlineKeyboardButton(text="Yo'q ❌", callback_data=f"no_{activity_id}"),
                 
             ]

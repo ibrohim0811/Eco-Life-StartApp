@@ -11,10 +11,11 @@ django.setup()
 
 import asyncio
 import logging
-from aiogram import Bot, Dispatcher, F
+from aiogram import Bot, Dispatcher, F, Bot
 from aiogram.filters import Command
 from pathlib import Path
 from aiogram import types
+from aiogram.types import ReactionTypeEmoji
 from aiogram_i18n import I18nContext
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.context import FSMContext
@@ -30,6 +31,8 @@ from handlers.account import dp as acc
 from handlers.faq import faq 
 from handlers.forgot_password import dp as forgot_password
 from admin.admin import dp_admin
+from handlers.alert import dp as alert
+from handlers.chat import router 
 from UI.default import sorov, main_menu
 from bot.connections import get_user
 
@@ -40,7 +43,7 @@ env_path = BASE_DIR / ".env"
 dp = Dispatcher(storage=MemoryStorage())
 i18n_middleware.setup(dispatcher=dp)
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-
+bot = Bot(token=BOT_TOKEN)
 
 
 
@@ -67,6 +70,28 @@ async def start(msg: types.Message, i18n: I18nContext):
             f"👋{i18n('hello')} {msg.from_user.first_name} {i18n('start_text')}", 
             reply_markup=sorov(i18n)
         )
+        
+
+ 
+        
+
+THANKS_WORDS = [
+    "rahmat", "raxmat", "tashakkur", 
+    "спасибо", "благодарю", 
+    "thanks", "thank you", "thx"
+]
+
+@dp.message(F.text, lambda msg: any(word in msg.text.lower() for word in THANKS_WORDS))
+async def handle_thanks_reaction(message: types.Message):
+    try:
+        await bot.set_message_reaction(
+            chat_id=message.chat.id,
+            message_id=message.message_id,
+            reaction=[ReactionTypeEmoji(emoji="❤️‍🔥")],
+            is_big=True
+        )
+    except Exception as e:
+        print(f"Xato: {e}")
     
 
 
@@ -78,7 +103,9 @@ async def main():
     dp.include_router(acc)
     dp.include_router(faq)
     dp.include_router(forgot_password)
+    dp.include_router(alert)
     dp.include_router(dp_admin)
+    dp.include_router(router)
     await dp.start_polling(bot)
 
 

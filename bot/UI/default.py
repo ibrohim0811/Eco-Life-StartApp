@@ -73,3 +73,15 @@ def payment_method_choice(i18n: I18nContext) -> ReplyKeyboardMarkup:
         resize_keyboard=True,
         one_time_keyboard=True
     )
+    
+def send_location(i18n: I18nContext) -> ReplyKeyboardMarkup:
+    
+    _ = i18n
+    
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text=_("share_location"), request_location=True)]
+        ],
+        resize_keyboard=True,
+        one_time_keyboard=True        
+    )

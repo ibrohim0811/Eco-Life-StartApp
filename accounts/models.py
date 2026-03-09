@@ -27,7 +27,7 @@ class Users(AbstractUser):
     is_active = models.BooleanField(default=True)
     is_banned = models.BooleanField(default=False)
     image = models.ImageField(upload_to='users/', default='users/image.png')
-    
+    balance = models.BigIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -65,15 +65,16 @@ class BalanceHistory(BaseCreatedModel):
             
     
 class UserActivities(BaseCreatedModel):
-    STATUS_CHOICES = (
-        ("pending", "Pending"),
-        ("accepted", "Accepted"),
-        ("rejected", "Rejected"),
-    )
-
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
-    amount = models.IntegerField(default=2500)
-    region = models.CharField(max_length=150)
+    
+    class ProccesStatus(models.TextChoices):
+        CHECKING = "kutilmoqda", "Kutilmoqda"
+        ACCEPTED = "qabul qilindi", "Qabul qilindi"
+        REJECTED = "qabul qilinmadi", "Qabul qilinmadi"
+        EXISTS = "bajarilgan", "Bajarilgan"
+    
+    
+    status = models.CharField(max_length=20, choices=ProccesStatus.choices, default=ProccesStatus.CHECKING)
+    amount = models.IntegerField(default=1500)
     video_file_id = models.CharField(max_length=255, null=True, blank=True)
     longitude = models.FloatField()
     latitude = models.FloatField()

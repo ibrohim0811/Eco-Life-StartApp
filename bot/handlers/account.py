@@ -48,16 +48,16 @@ async def about_account(msg: types.Message, i18n: I18nContext):
         uuid = str(user.uuid).split('-')[-1]
         text = (
             f"🪪 {i18n('uuid')}: {uuid} \n"
-            f"👤 {i18n('first_name')}: {user.first_name} \n"
-            f"📃 {i18n('last_name')}: {user.last_name}\n"
-            f"👤 {i18n('user_name')}: {user.username}\n"
-            f"📞 {i18n('tel')}: {user.phone}\n"
-            f"🌐 {i18n('til')}: {user.language}\n"
+            f"👤 {i18n('first_name')}: {user.first_name} \n\n"
+            f"📃 {i18n('last_name')}: {user.last_name}\n\n"
+            f"👤 {i18n('user_name')}: <code>{user.username}</code>\n\n"
+            f"📞 {i18n('tel')}: {user.phone}\n\n"
+            f"🌐 {i18n('til')}: {user.language}\n\n"
             f"📝 {i18n('about')}: {user.about or '-'}\n\n"
             f"💰 {i18n('balance')}: {formatted_balance}"
         )
         
-        await msg.answer(text, reply_markup=update(i18n))
+        await msg.answer(text, parse_mode="HTML", reply_markup=update(i18n))
        
     
     
