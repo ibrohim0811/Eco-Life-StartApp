@@ -12,37 +12,73 @@ django.setup()
 from aiogram import Router, types, F, Bot
 from asgiref.sync import sync_to_async
 from middleware.i18n import i18n_middleware
-from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from django.db import transaction
 from aiogram.types import ReplyKeyboardRemove
+from django.utils import timezone
 
 from aiogram_i18n.context import I18nContext
 from bot.connections import get_user_language
 from states.alert import EcoALert
 
 from UI.default import send_location
-from accounts.models import UserActivities, BalanceHistory
-from UI.default import main_menu
+from accounts.models import UserActivities, BalanceHistory, Users
+from UI.default import main_menu, back
 from UI.inline import sorov
 from connections import get_user_language, get_user
 
 TOKEN = os.getenv("BOT_TOKEN")
 ADMIN = os.getenv("SUPER_ADMIN")
 CHANNEL_ID = os.getenv("CHANNEL_ID")
+FREE_LIMIT = 1
+GO_LIMIT = 3
+PRO_LIMIT = 5
+ULTIMA_LIMIT = 7
 
 dp = Router()
 bot = Bot(token=TOKEN)
-print(dp)
+
+
+def get_user(tg_id):
+    return Users.objects.select_related('subscription').filter(tg_id=tg_id).first() 
+
+def check_user_limit_sync(tg_id):
+    user = Users.objects.select_related('subscription').filter(tg_id=tg_id).first()
+    if not user:
+        return None, 0, "FREE" 
+        
+    today = timezone.now().date()
+    today_count = UserActivities.objects.filter(
+        user__phone=user.phone, 
+        created_at__date=today
+    ).count()
+    
+    return user, today_count, user.subscription.badge_text()
 
 
 @dp.message(lambda message, i18n: message.text == i18n("eco_damage"))
 async def start_alert(msg: types.Message, i18n: I18nContext, state: FSMContext):
+    user, today_count, badge = await sync_to_async(check_user_limit_sync)(tg_id=msg.from_user.id)
     
+    if not user: return
+
+    if badge == 'FREE' and today_count >= FREE_LIMIT:
+        await msg.answer(i18n('limit_reached'))
+        return
+    elif badge == 'GO' and today_count >= GO_LIMIT:
+        await msg.answer(i18n('limit_reached'))
+        return
+    elif badge == 'PRO' and today_count >= PRO_LIMIT:
+        await msg.answer(i18n('limit_reached'))
+        return
+    elif badge == 'ULTIMA' and today_count >= ULTIMA_LIMIT:
+        await msg.answer(i18n('limit_reached'))
+        return
+        
     language = await sync_to_async(get_user_language)(tg_id=msg.from_user.id)
     await i18n.set_locale(language)
     await msg.answer(i18n("info_alert"))
-    await msg.answer(i18n("alert_video"), reply_markup=ReplyKeyboardRemove())
+    await msg.answer(i18n("alert_video"), reply_markup=back())
     await state.set_state(EcoALert.video)
     
 @dp.message(EcoALert.video)
@@ -158,7 +194,7 @@ async def accepted(callback: types.CallbackQuery, i18n: I18nContext):
             await callback.answer("Tasdiqlandi!")
                 
         await callback.answer("Tasdiqlandi!")
-
+        await callback.message.delete()
     elif status == "already_done":
         await callback.answer("Bu ariza allaqachon tasdiqlangan!")
     else:
@@ -210,7 +246,7 @@ async def status_already(callback: types.CallbackQuery, i18n: I18nContext):
         await callback.answer(i18n("something_went_wrong"))
 
         new_text = f"ID: {activity.id} - {i18n('something_went_wrong')}"
-        
+        await callback.message.delete()
         if callback.message.text != new_text:
             await callback.message.edit_text(new_text)
 
@@ -276,7 +312,7 @@ async def status_already(callback: types.CallbackQuery, i18n: I18nContext):
         await callback.answer(i18n("rejected"), show_alert=False)
         
         await callback.message.edit_text(f"ID: {activity_id} - {i18n('rejected')}")
-
+        await callback.message.delete()
     except Exception as e:
         
         print(f"Telegram yuborishda xato: {e}")

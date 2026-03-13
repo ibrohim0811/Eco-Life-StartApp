@@ -86,12 +86,14 @@ class UserActivities(BaseCreatedModel):
         db_column='user_phone' 
     )
 
-
+    def __str__(self):
+        return self.user.phone
 
 class Subscription(models.Model):
     class PlanChoices(models.TextChoices):
         FREE = "Free", "free"
         PRO = "Pro", "pro"
+        GO = "Go", 'go'
         ULTIMA = "Ultima", "ultima"
 
     user = models.OneToOneField(
@@ -105,16 +107,27 @@ class Subscription(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def is_active(self) -> bool:
-        if self.plan == self.FREE:
+        if self.plan == self.PlanChoices.FREE:
             return True
         if self.is_lifetime:
             return True
         return bool(self.expires_at and self.expires_at > timezone.now())
 
     def badge_text(self) -> str:
-        if self.plan == self.FREE:
+        if not self.is_active(): 
+            return "FREE"
+        if self.plan == self.PlanChoices.FREE:
             return "FREE"
         return self.plan.upper()
+    
+    def check_subscription_status(self):
+        if self.plan != self.PlanChoices.FREE and not self.is_lifetime:
+            if self.expires_at and self.expires_at < timezone.now():
+                self.plan = self.PlanChoices.FREE
+                self.save() 
+                
+    def __str__(self):
+        return self.user.username
     
     
 class Banner(BaseCreatedModel):
@@ -128,6 +141,9 @@ class Banner(BaseCreatedModel):
 
     class Meta:
         ordering = ["order", "-created_at"]
+        
+    def __str__(self):
+        return self.title
         
 
 

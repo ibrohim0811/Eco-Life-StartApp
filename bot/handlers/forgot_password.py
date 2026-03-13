@@ -22,7 +22,9 @@ from UI.default import contact_button
 from validation.validate import validate_phone_number
 from django.contrib.auth.hashers import make_password
 from accounts.tasks import send_sms_task
-from UI.default import main_menu
+from UI.default import main_menu, back
+from django.utils import timezone
+from accounts.models import UserActivities
 
 dp = Router()
 
@@ -59,9 +61,46 @@ headers = {
 }
 
 
+def get_user(tg_id):
+    return Users.objects.select_related('subscription').filter(tg_id=tg_id).first() 
+
+def check_user_limit_sync(tg_id):
+    user = Users.objects.select_related('subscription').filter(tg_id=tg_id).first()
+    if not user:
+        return None, 0, "FREE" 
+        
+    today = timezone.now().date()
+    today_count = UserActivities.objects.filter(
+        user__phone=user.phone, 
+        created_at__date=today
+    ).count()
+    
+    return user, today_count, user.subscription.badge_text()
+
+FREE_LIMIT = 1
+GO_LIMIT = 1
+PRO_LIMIT = 2
+ULTIMA_LIMIT = 3
+
 
 @dp.message(lambda message, i18n: message.text == i18n('forgot_password'))
 async def forgot_password_start(msg: types.Message, i18n: I18nContext, state: FSMContext):
+    
+    user, today_count, badge = await sync_to_async(check_user_limit_sync)(tg_id=msg.from_user.id)
+    
+    if badge == 'FREE' and today_count >= FREE_LIMIT:
+        await msg.answer(i18n('limit_reached'))
+        return
+    elif badge == 'GO' and today_count >= GO_LIMIT:
+        await msg.answer(i18n('limit_reached'))
+        return
+    elif badge == 'PRO' and today_count >= PRO_LIMIT:
+        await msg.answer(i18n('limit_reached'))
+        return
+    elif badge == 'ULTIMA' and today_count >= ULTIMA_LIMIT:
+        await msg.answer(i18n('limit_reached'))
+        return
+    
     user = await get_user_by_tg_id(msg.from_user.id)
     if not user:
         await msg.answer(i18n('non_registered'))
@@ -74,7 +113,10 @@ async def forgot_password_start(msg: types.Message, i18n: I18nContext, state: FS
     )
     
     await state.set_state(ForgotPassword.username)
-    await msg.answer(i18n('enter_username'), reply_markup=ReplyKeyboardRemove())
+    await msg.answer(i18n('enter_username'), reply_markup=back())
+
+
+
 
 @dp.message(ForgotPassword.username)
 async def check_username(msg: types.Message, i18n: I18nContext, state: FSMContext):

@@ -27,6 +27,19 @@ def payment_version() -> InlineKeyboardMarkup:
         ]
     )
     
+    
+def payment_request(user_id: int) -> InlineKeyboardMarkup:
+    
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text='Qabul qilish ✅', callback_data=f'accept_{user_id}'),
+                InlineKeyboardButton(text='Bekor qilish ❌', callback_data=f'decline_{user_id}')
+            ]
+        ]
+    )
+    
+    
 def change_lang(i18n: I18nContext) -> InlineKeyboardMarkup:
    
     _ = i18n

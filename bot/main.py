@@ -33,9 +33,11 @@ from handlers.forgot_password import dp as forgot_password
 from admin.admin import dp_admin
 from handlers.alert import dp as alert
 from handlers.chat import router 
+from handlers.payment import payment
 from UI.default import sorov, main_menu
 from UI.inline import settings_lang, change_lang
 from bot.connections import get_user, get_user_language
+from accounts.models import Subscription
 
 load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent
@@ -46,11 +48,16 @@ i18n_middleware.setup(dispatcher=dp)
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 bot = Bot(token=BOT_TOKEN)
 
-
+def get_and_check_sub(user):
+    
+    sub, created = Subscription.objects.get_or_create(user=user)
+    sub.check_subscription_status()
+    return sub
 
 @dp.message(Command('start'))
 async def start(msg: types.Message, i18n: I18nContext):
     user = await sync_to_async(get_user)(msg.from_user.id)
+    await sync_to_async(get_and_check_sub)(user)
     user_language = await sync_to_async(get_user_language)(tg_id=msg.from_user.id)
     if user:
         if user.is_banned:
@@ -73,6 +80,11 @@ async def start(msg: types.Message, i18n: I18nContext):
         )
         
 
+
+@dp.message(F.text == '⬅️')
+async def back_to_main(msg: types.Message, state: FSMContext, i18n: I18nContext):
+    await msg.answer('⬅️', reply_markup=main_menu(i18n))
+    await state.clear()    
  
         
 
@@ -153,6 +165,7 @@ async def main():
     dp.include_router(alert)
     dp.include_router(dp_admin)
     dp.include_router(router)
+    dp.include_router(payment)
     await dp.start_polling(bot)
 
 

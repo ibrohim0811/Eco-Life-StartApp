@@ -31,9 +31,12 @@ def get_user_info(tg_id):
 @acc.message(lambda message, i18n: message.text == i18n('acc'))
 async def about_account(msg: types.Message, i18n: I18nContext):
     user = await sync_to_async(get_user_info)(msg.from_user.id)
+    await sync_to_async(lambda: user.subscription.check_subscription_status())()
+    
     if user: 
         uuid = str(user.uuid).split('-')[-1]
         text = (
+            f"🎯 {user.subscription.badge_text()}\n"
             f"🪪 {i18n('uuid')}: {uuid} \n"
             f"👤 {i18n('first_name')}: {user.first_name} \n\n"
             f"📃 {i18n('last_name')}: {user.last_name}\n\n"
@@ -53,8 +56,11 @@ async def refresh_account(callback: types.CallbackQuery, i18n: I18nContext):
     
     user = await sync_to_async(get_user_info)(callback.from_user.id)
     uid = str(user.uuid).split('-')[-1]
+    await sync_to_async(lambda: user.subscription.check_subscription_status())()
+
     if user:
         new_text = (
+            f"🎯 {user.subscription.badge_text()}\n"
             f"🪪 {i18n('uuid')}: {uid} \n"
             f"👤 {i18n('first_name')}: {user.first_name} \n\n"
             f"📃 {i18n('last_name')}: {user.last_name}\n\n"
